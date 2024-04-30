@@ -10,6 +10,7 @@
 <div id="chartContainer"></div>
 <table id="dataTable"></table>
 <script src="./math.js"></script>
+<script src="./chart.js"></script>
 <script>
   const N = 1000;
   const samples = [];
@@ -20,6 +21,16 @@
         + (type === 'basic' ? 0 : 5000);
     samples.push({id: i, label: type, point: [km, price]});
   }
+
+  const options = {
+    size: 250,
+    axesLabels: ['Kilometers', 'Price'],
+    styles: {
+      basic: 'gray',
+      sport: 'red'
+    }
+  };
+  const chart = new Chart(document.getElementById('chartContainer'), samples, options);
 
   const header = document.getElementById('dataTable').createTHead();
   const tr = header.insertRow();
