@@ -92,6 +92,45 @@ class Chart {
     ctx.strokeStyle = 'lightgrey';
     ctx.stroke();
     ctx.setLineDash([]); // reset
+
+    const dataMin = math.remapPoint(this.pixelBounds, this.dataBounds, [left, bottom]);
+    const dataMax = math.remapPoint(this.pixelBounds, this.dataBounds, [right, top]);
+    graphics.drawText(ctx, {
+      text: math.formatNumber(dataMin[0], 2),
+      loc: [left, bottom],
+      size: margin * 0.3,
+      align: 'left',
+      vAlign: 'top'
+    });
+    ctx.save();
+    ctx.translate(left, bottom);
+    ctx.rotate(-Math.PI / 2);
+    graphics.drawText(ctx, {
+      text: math.formatNumber(dataMin[1], 2),
+      loc: [0, 0],
+      size: margin * 0.3,
+      align: 'left',
+      vAlign: 'bottom'
+    });
+    ctx.restore();
+    graphics.drawText(ctx, {
+      text: math.formatNumber(dataMax[0], 2),
+      loc: [right, bottom],
+      size: margin * 0.3,
+      align: 'right',
+      vAlign: 'top'
+    });
+    ctx.save();
+    ctx.translate(left, top);
+    ctx.rotate(-Math.PI / 2);
+    graphics.drawText(ctx, {
+      text: math.formatNumber(dataMax[1], 2),
+      loc: [0, 0],
+      size: margin * 0.3,
+      align: 'right',
+      vAlign: 'bottom'
+    });
+    ctx.restore();
   }
 
   #drawSamples() {
