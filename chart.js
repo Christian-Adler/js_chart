@@ -55,10 +55,22 @@ class Chart {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    this.#drawAxis();
+
     ctx.globalAlpha = this.transparency;
     this.#drawSamples();
     ctx.globalAlpha = 1;
 
+  }
+
+  #drawAxis() {
+    const {ctx, canvas, axesLabels, margin} = this;
+    const {left, right, top, bottom} = this.pixelBounds;
+
+    graphics.drawText(ctx, {
+      text: axesLabels[0],
+      loc: [canvas.width / 2, bottom + margin / 2],
+    });
   }
 
   #drawSamples() {
@@ -70,4 +82,5 @@ class Chart {
       graphics.drawPoint(ctx, pixelLoc);
     }
   }
+
 }
