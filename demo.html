@@ -16,9 +16,7 @@
   for (let i = 1; i <= N; i++) {
     const type = Math.random() < 0.5 ? 'basic' : 'sport';
     const km = math.lerp(3000, 300000, Math.random());
-    const t = math.invLerp(3000, 300000, km);
-    const price = math.lerp(9000, 900, t);
-    // const price = math.remap(3000, 300000, 9000, 900, km)
+    const price = math.remap(3000, 300000, 9000, 900, km)
     samples.push({id: i, label: type, point: [km, price]});
   }
 
