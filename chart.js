@@ -48,7 +48,7 @@ class Chart {
         dragInfo.end = this.#getMouse(evt, true);
         dragInfo.offset = math.subtract(dragInfo.start, dragInfo.end);
         const newOffset = math.add(dataTrans.offset, dragInfo.offset);
-        this.#updateDataBounds(newOffset);
+        this.#updateDataBounds(newOffset, dataTrans.scale);
         this.#draw();
       }
     };
@@ -56,14 +56,29 @@ class Chart {
       dataTrans.offset = math.add(dataTrans.offset, dragInfo.offset);
       dragInfo.dragging = false;
     };
+    canvas.onwheel = (evt) => {
+      const dir = Math.sign(evt.deltaY);
+      const step = 0.02;
+      dataTrans.scale += dir * step;
+      this.#updateDataBounds(dataTrans.offset, dataTrans.scale);
+      this.#draw();
+      evt.preventDefault();
+      return false;
+    };
   }
 
-  #updateDataBounds(offset) {
+  #updateDataBounds(offset, scale) {
     const {dataBounds, defaultDataBounds: def} = this;
     dataBounds.left = def.left + offset[0];
     dataBounds.right = def.right + offset[0];
     dataBounds.top = def.top + offset[1];
     dataBounds.bottom = def.bottom + offset[1];
+
+    const center = [(dataBounds.left + dataBounds.right) / 2, (dataBounds.top + dataBounds.bottom) / 2];
+    dataBounds.left = math.lerp(center[0], dataBounds.left, scale);
+    dataBounds.right = math.lerp(center[0], dataBounds.right, scale);
+    dataBounds.top = math.lerp(center[1], dataBounds.top, scale);
+    dataBounds.bottom = math.lerp(center[1], dataBounds.bottom, scale);
   }
 
   #getMouse(evt, dataSpace = false) {
