@@ -46,7 +46,10 @@ class Chart {
     canvas.onmousemove = (evt) => {
       if (dragInfo.dragging) {
         dragInfo.end = this.#getMouse(evt, true);
-        dragInfo.offset = math.subtract(dragInfo.start, dragInfo.end);
+        dragInfo.offset = math.scale(
+            math.subtract(dragInfo.start, dragInfo.end),
+            dataTrans.scale
+        );
         const newOffset = math.add(dataTrans.offset, dragInfo.offset);
         this.#updateDataBounds(newOffset, dataTrans.scale);
         this.#draw();
