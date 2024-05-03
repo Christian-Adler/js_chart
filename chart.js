@@ -93,11 +93,18 @@ class Chart {
       if (!math.equals(dragInfo.offset, [0, 0]))
         return;
       if (this.hoveredSample) {
-        this.selectedSample = this.hoveredSample;
-        if (this.onClick)
-          this.onClick(this.selectedSample);
-        this.#draw();
+        // click again on the same -> deselect
+        if (this.selectedSample === this.hoveredSample) {
+          this.selectedSample = null;
+        } else {
+          this.selectedSample = this.hoveredSample;
+        }
+      } else {
+        this.selectedSample = null;
       }
+      if (this.onClick)
+        this.onClick(this.selectedSample);
+      this.#draw();
     };
   }
 
