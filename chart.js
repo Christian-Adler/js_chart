@@ -61,9 +61,9 @@ class Chart {
     };
     canvas.onwheel = (evt) => {
       const dir = Math.sign(evt.deltaY);
-      const step = 0.02;
+      const step = dataTrans.scale * 0.05;
       dataTrans.scale += dir * step;
-      dataTrans.scale = Math.max(step, Math.min(2, dataTrans.scale));
+      dataTrans.scale = Math.max(0.01, Math.min(3, dataTrans.scale));
 
       this.#updateDataBounds(dataTrans.offset, dataTrans.scale);
       this.#draw();
