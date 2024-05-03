@@ -16,7 +16,7 @@ class Chart {
     this.ctx = this.canvas.getContext('2d');
 
     this.margin = options.size * 0.1;
-    this.transparency = 0.7;
+    this.transparency = options.transparency || 1;
 
     this.dataTrans = {
       offset: [0, 0],
