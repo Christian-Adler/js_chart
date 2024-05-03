@@ -13,6 +13,7 @@ graphics.drawText = (ctx, {text, loc, align = 'center', vAlign = 'middle', size 
   ctx.fillStyle = color;
   ctx.fillText(text, ...loc);
 };
+
 graphics.drawImage = (ctx, image, loc) => {
   ctx.beginPath();
   ctx.drawImage(image,
@@ -35,6 +36,20 @@ graphics.generateImages = (styles, size = 20) => {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.font = size + 'px Courier';
+
+    if (style.color === 'red')
+      ctx.filter = `
+      brightness(2)
+      contrast(0.3)
+      sepia(1)
+      brightness(0.7)
+      hue-rotate(-45deg)
+      saturate(3)
+      contrast(3)
+      `;
+    else
+      ctx.filter = 'grayscale(1)';
+
     ctx.fillText(style.text, canvas.width / 2, canvas.height / 2);
     style['image'] = new Image();
     style['image'].src = canvas.toDataURL();

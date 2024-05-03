@@ -33,7 +33,7 @@
     icon: "image"
   };
 
-  graphics.generateImages(options.styles)
+  graphics.generateImages(options.styles, 26)
 
   setTimeout(() => {
     const chart = new Chart(document.getElementById('chartContainer'), samples, options);
