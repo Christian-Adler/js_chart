@@ -30,9 +30,14 @@
       basic: {color: 'gray', text: '🚗'},
       sport: {color: 'red', text: '🏎️'}
     },
-    icon: "text"
+    icon: "image"
   };
-  const chart = new Chart(document.getElementById('chartContainer'), samples, options);
+
+  graphics.generateImages(options.styles)
+
+  setTimeout(() => {
+    const chart = new Chart(document.getElementById('chartContainer'), samples, options);
+  }, 100);
 
   const header = document.getElementById('dataTable').createTHead();
   const tr = header.insertRow();

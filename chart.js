@@ -216,6 +216,9 @@ class Chart {
         case 'text':
           graphics.drawText(ctx, {text: this.styles[label].text, loc: pixelLoc, size: 26});
           break;
+        case 'image':
+          graphics.drawImage(ctx, this.styles[label].image, pixelLoc);
+          break;
         default:
           graphics.drawPoint(ctx, pixelLoc, this.styles[label].color);
           break;
