@@ -28,6 +28,8 @@ class Chart {
       dragging: false
     };
 
+    this.hoveredSample = null;
+
     this.pixelBounds = this.#getPixelBounds();
     this.dataBounds = this.#getDataBounds();
     this.defaultDataBounds = this.#getDataBounds(); // backup
@@ -53,8 +55,19 @@ class Chart {
         );
         const newOffset = math.add(dataTrans.offset, dragInfo.offset);
         this.#updateDataBounds(newOffset, dataTrans.scale);
-        this.#draw();
       }
+
+      // in pixel space
+      const pLoc = this.#getMouse(evt);
+      const pPoints = this.samples.map(s => math.remapPoint(this.dataBounds, this.pixelBounds, s.point));
+      const index = math.getNearest(pLoc, pPoints);
+      const nearest = this.samples[index];
+      const dist = math.distance(pPoints[index], pLoc);
+      if (dist < this.margin / 2)
+        this.hoveredSample = nearest;
+      else
+        this.hoveredSample = null;
+      this.#draw();
     };
     canvas.onmouseup = (evt) => {
       dataTrans.offset = math.add(dataTrans.offset, dragInfo.offset);
@@ -131,9 +144,20 @@ class Chart {
     this.#drawAxis();
 
     ctx.globalAlpha = this.transparency;
-    this.#drawSamples();
+    this.#drawSamples(this.samples);
     ctx.globalAlpha = 1;
 
+    if (this.hoveredSample)
+      this.#emphasizeSamples(this.hoveredSample);
+  }
+
+  #emphasizeSamples(sample, color = 'white') {
+    const pLoc = math.remapPoint(this.dataBounds, this.pixelBounds, sample.point);
+    const grd = this.ctx.createRadialGradient(...pLoc, 0, ...pLoc, this.margin);
+    grd.addColorStop(0, color);
+    grd.addColorStop(1, 'rgba(255,255,255,0');
+    graphics.drawPoint(this.ctx, pLoc, grd, this.margin * 2);
+    this.#drawSamples([sample]);
   }
 
   #drawAxis() {
@@ -206,8 +230,8 @@ class Chart {
     ctx.restore();
   }
 
-  #drawSamples() {
-    const {ctx, samples, dataBounds, pixelBounds} = this;
+  #drawSamples(samples) {
+    const {ctx, dataBounds, pixelBounds} = this;
     for (const sample of samples) {
       const {point, label} = sample;
       const pixelLoc = math.remapPoint(dataBounds, pixelBounds, point);
