@@ -47,6 +47,8 @@ class Chart {
     canvas.onmousedown = (evt) => {
       dragInfo.start = this.#getMouse(evt, true);
       dragInfo.dragging = true;
+      dragInfo.end = [0, 0];
+      dragInfo.offset = [0, 0];
     };
     canvas.onmousemove = (evt) => {
       if (dragInfo.dragging) {
@@ -74,8 +76,6 @@ class Chart {
     canvas.onmouseup = (evt) => {
       dataTrans.offset = math.add(dataTrans.offset, dragInfo.offset);
       dragInfo.dragging = false;
-      dragInfo.end = [0, 0];
-      dragInfo.offset = [0, 0];
     };
     canvas.onwheel = (evt) => {
       const dir = Math.sign(evt.deltaY);
@@ -90,6 +90,8 @@ class Chart {
     };
 
     canvas.onclick = () => {
+      if (!math.equals(dragInfo.offset, [0, 0]))
+        return;
       if (this.hoveredSample) {
         this.selectedSample = this.hoveredSample;
         if (this.onClick)

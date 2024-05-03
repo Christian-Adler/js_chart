@@ -1,5 +1,8 @@
 const math = {};
 
+math.equals = (p1, p2) => {
+  return p1[0] === p2[0] && p1[1] === p2[1];
+};
 math.lerp = (a, b, t) => {
   return a + (b - a) * t;
 };
