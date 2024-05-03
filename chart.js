@@ -74,6 +74,8 @@ class Chart {
     canvas.onmouseup = (evt) => {
       dataTrans.offset = math.add(dataTrans.offset, dragInfo.offset);
       dragInfo.dragging = false;
+      dragInfo.end = [0, 0];
+      dragInfo.offset = [0, 0];
     };
     canvas.onwheel = (evt) => {
       const dir = Math.sign(evt.deltaY);
