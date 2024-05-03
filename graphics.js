@@ -37,13 +37,18 @@ graphics.generateImages = (styles, size = 20) => {
     ctx.textBaseline = 'middle';
     ctx.font = size + 'px Courier';
 
-    if (style.color === 'red')
+    const colorHueMap = {
+      red: 0, yellow: 60, green: 120, cyan: 180, blue: 240, magenta: 300
+    }
+    const hue = -45 + colorHueMap[style.color]; // -45 because of sepia > negotiate
+
+    if (!isNaN(hue))
       ctx.filter = `
       brightness(2)
       contrast(0.3)
       sepia(1)
       brightness(0.7)
-      hue-rotate(-45deg)
+      hue-rotate(${hue}deg)
       saturate(3)
       contrast(3)
       `;
