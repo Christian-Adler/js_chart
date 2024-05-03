@@ -152,8 +152,6 @@ class Chart {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    this.#drawAxis();
-
     ctx.globalAlpha = this.transparency;
     this.#drawSamples(this.samples);
     ctx.globalAlpha = 1;
@@ -162,6 +160,8 @@ class Chart {
       this.#emphasizeSamples(this.hoveredSample);
     if (this.selectedSample)
       this.#emphasizeSamples(this.selectedSample, "yellow");
+
+    this.#drawAxis();
   }
 
   selectSample(sample) {
@@ -181,6 +181,11 @@ class Chart {
   #drawAxis() {
     const {ctx, canvas, axesLabels, margin} = this;
     const {left, right, top, bottom} = this.pixelBounds;
+
+    ctx.clearRect(0, 0, canvas.width, margin);
+    ctx.clearRect(0, 0, margin, canvas.height);
+    ctx.clearRect(this.canvas.width - margin, 0, margin, this.canvas.height);
+    ctx.clearRect(0, this.canvas.height - margin, this.canvas.width, margin);
 
     graphics.drawText(ctx, {
       text: axesLabels[0],
