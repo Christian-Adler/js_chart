@@ -63,6 +63,8 @@ class Chart {
       const dir = Math.sign(evt.deltaY);
       const step = 0.02;
       dataTrans.scale += dir * step;
+      dataTrans.scale = Math.max(step, Math.min(2, dataTrans.scale));
+
       this.#updateDataBounds(dataTrans.offset, dataTrans.scale);
       this.#draw();
       evt.preventDefault();
