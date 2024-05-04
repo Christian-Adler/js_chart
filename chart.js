@@ -191,14 +191,13 @@ class Chart {
     this.#drawSamples(ctx, this.samples);
     ctx.globalAlpha = 1;
 
-    this.#drawLayer();
-
     this.#drawAxis();
+
+    this.#drawLayer();
   }
 
   #drawLayer() {
     const {ctxLayer: ctx, canvasLayer: canvas, margin} = this;
-    const {left, right, top, bottom} = this.pixelBounds;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     if (this.hoveredSample)
@@ -207,6 +206,11 @@ class Chart {
       this.#emphasizeSamples(ctx, this.selectedSample, "yellow");
 
     this.#clearMargin(ctx, canvas, margin);
+    this.#drawCursor(ctx, margin, canvas);
+  }
+
+  #drawCursor(ctx, margin /*, canvas */) {
+    const {left, right, top, bottom} = this.pixelBounds;
 
     const pLoc = this.mouseInfo.pLoc;
     if (pLoc) {
@@ -237,26 +241,75 @@ class Chart {
       ctx.arc(...pLoc, circleRad, 0, Math.PI * 2);
       ctx.stroke();
 
-    }
 
+      const dLoc = this.mouseInfo.dLoc;
+      if (dLoc) {
+        const txtSize = margin * 0.3;
+        const textHeight = txtSize - 2;
+        ctx.font = 'bold ' + txtSize + 'px Courier';
 
-    const dLoc = this.mouseInfo.dLoc;
-    if (dLoc) {
-      graphics.drawText(ctx, {
-        text: math.formatNumber(dLoc[0], 2),
-        loc: [canvas.width / 2, margin / 2],
-        size: margin * 0.6
-      });
+        if (pLoc[0] > left && pLoc[0] < right) {
+          // text on cursor
+          const text = math.formatNumber(dLoc[0], 2);
+          const textDim = ctx.measureText(text);
+          const textWidth = Math.floor(textDim.width) + 8;
 
-      ctx.save();
-      ctx.translate(right + margin / 2, canvas.height / 2);
-      ctx.rotate(-Math.PI / 2);
-      graphics.drawText(ctx, {
-        text: math.formatNumber(dLoc[1], 2),
-        loc: [0, 0],
-        size: margin * 0.6
-      });
-      ctx.restore();
+          ctx.fillStyle = "darkgray";
+          ctx.beginPath();
+          ctx.roundRect(Math.min(right - textWidth, Math.max(left, pLoc[0] - textWidth / 2)), bottom, textWidth, textHeight, [0, 0, 8, 8]);
+          ctx.fill();
+          graphics.drawText(ctx, {
+            text: text,
+            loc: [Math.max(left + textWidth / 2, Math.min(right - textWidth / 2, pLoc[0])), bottom],
+            size: txtSize,
+            align: 'center',
+            vAlign: 'top'
+          });
+
+          // text on the top side
+          // graphics.drawText(ctx, {
+          //   text: math.formatNumber(dLoc[0], 2),
+          //   loc: [canvas.width / 2, margin / 2],
+          //   size: margin * 0.6
+          // });
+        }
+
+        if (pLoc[1] > top && pLoc[1] < bottom) {
+          // text on cursor
+          const text = math.formatNumber(dLoc[1], 2);
+          const textDim = ctx.measureText(text);
+          const textWidth = Math.floor(textDim.width) + 8;
+
+          ctx.fillStyle = "darkgray";
+
+          ctx.beginPath();
+          ctx.roundRect(left - textHeight, Math.min(bottom - textWidth, Math.max(top, pLoc[1] - textWidth / 2)), textHeight, textWidth, [8, 0, 0, 8]);
+          ctx.fill();
+
+          ctx.save();
+          ctx.translate(left + 2, top);
+          ctx.rotate(-Math.PI / 2);
+          graphics.drawText(ctx, {
+            text: math.formatNumber(dLoc[1], 2),
+            loc: [Math.max(-bottom + margin + textWidth / 2, Math.min(-textWidth / 2, top - pLoc[1])), 0],
+            size: txtSize,
+            align: 'center',
+            vAlign: 'bottom'
+          });
+          ctx.restore();
+
+          // text on the right side
+          // ctx.save();
+          // ctx.translate(right + margin / 2, canvas.height / 2);
+          // ctx.rotate(-Math.PI / 2);
+          // graphics.drawText(ctx, {
+          //   text: math.formatNumber(dLoc[1], 2),
+          //   loc: [0, 0],
+          //   size: margin * 0.6
+          // });
+          // ctx.restore();
+        }
+      }
     }
   }
 
@@ -315,7 +368,7 @@ class Chart {
       vAlign: 'top'
     });
     ctx.save();
-    ctx.translate(left, bottom);
+    ctx.translate(left + 2, bottom);
     ctx.rotate(-Math.PI / 2);
     graphics.drawText(ctx, {
       text: math.formatNumber(dataMin[1], 2),
@@ -333,7 +386,7 @@ class Chart {
       vAlign: 'top'
     });
     ctx.save();
-    ctx.translate(left, top);
+    ctx.translate(left + 2, top);
     ctx.rotate(-Math.PI / 2);
     graphics.drawText(ctx, {
       text: math.formatNumber(dataMax[1], 2),
