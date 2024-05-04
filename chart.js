@@ -37,6 +37,8 @@ class Chart {
       dragging: false
     };
 
+    this.mouseInfo = {dLoc: null, pLoc: null};
+
     this.hoveredSample = null;
     this.selectedSample = null;
 
@@ -60,8 +62,11 @@ class Chart {
     };
     canvas.onmousemove = (evt) => {
       let fullRedraw = false;
+
+      this.mouseInfo.dLoc = this.#getMouse(evt, true);
+
       if (dragInfo.dragging) {
-        dragInfo.end = this.#getMouse(evt, true);
+        dragInfo.end = this.mouseInfo.dLoc;
         dragInfo.offset = math.scale(
             math.subtract(dragInfo.start, dragInfo.end),
             dataTrans.scale
@@ -72,11 +77,11 @@ class Chart {
       }
 
       // in pixel space
-      const pLoc = this.#getMouse(evt);
+      this.mouseInfo.pLoc = this.#getMouse(evt);
       const pPoints = this.samples.map(s => math.remapPoint(this.dataBounds, this.pixelBounds, s.point));
-      const index = math.getNearest(pLoc, pPoints);
+      const index = math.getNearest(this.mouseInfo.pLoc, pPoints);
       const nearest = this.samples[index];
-      const dist = math.distance(pPoints[index], pLoc);
+      const dist = math.distance(pPoints[index], this.mouseInfo.pLoc);
       if (dist < this.margin / 2)
         this.hoveredSample = nearest;
       else
@@ -88,9 +93,14 @@ class Chart {
       else
         this.#drawLayer();
     };
-    canvas.onmouseup = (_) => {
+    canvas.onmouseup = (/*evt*/) => {
       dataTrans.offset = math.add(dataTrans.offset, dragInfo.offset);
       dragInfo.dragging = false;
+    };
+    canvas.onmouseout = (_) => {
+      this.mouseInfo.dLoc = null;
+      this.mouseInfo.pLoc = null;
+      this.#drawLayer();
     };
     canvas.onwheel = (evt) => {
       const dir = Math.sign(evt.deltaY);
@@ -188,6 +198,7 @@ class Chart {
 
   #drawLayer() {
     const {ctxLayer: ctx, canvasLayer: canvas, margin} = this;
+    const {left, right, top, bottom} = this.pixelBounds;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     if (this.hoveredSample)
@@ -196,6 +207,57 @@ class Chart {
       this.#emphasizeSamples(ctx, this.selectedSample, "yellow");
 
     this.#clearMargin(ctx, canvas, margin);
+
+    const pLoc = this.mouseInfo.pLoc;
+    if (pLoc) {
+      const circleRad = 8;
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = 'darkgray';
+
+      ctx.beginPath();
+      if (pLoc[0] > left + circleRad) {
+        ctx.moveTo(left, pLoc[1]);
+        ctx.lineTo(left - margin + pLoc[0] - circleRad, pLoc[1]);
+      }
+      if (pLoc[0] < right - circleRad) {
+        ctx.moveTo(left - margin + pLoc[0] + circleRad, pLoc[1]);
+        ctx.lineTo(right, pLoc[1]);
+      }
+      if (pLoc[1] > top + circleRad) {
+        ctx.moveTo(pLoc[0], top);
+        ctx.lineTo(pLoc[0], top - margin + pLoc[1] - circleRad);
+      }
+      if (pLoc[1] < bottom - circleRad) {
+        ctx.moveTo(pLoc[0], top - margin + pLoc[1] + circleRad);
+        ctx.lineTo(pLoc[0], bottom);
+      }
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(...pLoc, circleRad, 0, Math.PI * 2);
+      ctx.stroke();
+
+    }
+
+
+    const dLoc = this.mouseInfo.dLoc;
+    if (dLoc) {
+      graphics.drawText(ctx, {
+        text: math.formatNumber(dLoc[0], 2),
+        loc: [canvas.width / 2, margin / 2],
+        size: margin * 0.6
+      });
+
+      ctx.save();
+      ctx.translate(right + margin / 2, canvas.height / 2);
+      ctx.rotate(-Math.PI / 2);
+      graphics.drawText(ctx, {
+        text: math.formatNumber(dLoc[1], 2),
+        loc: [0, 0],
+        size: margin * 0.6
+      });
+      ctx.restore();
+    }
   }
 
   selectSample(sample) {
