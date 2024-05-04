@@ -207,6 +207,61 @@ class Chart {
 
     this.#clearMargin(ctx, canvas, margin);
     this.#drawCursor(ctx, margin, canvas);
+    this.#drawHoveredInfo(ctx, margin, canvas);
+  }
+
+  #drawHoveredInfo(ctx, margin, canvas) {
+    if (!this.hoveredSample)
+      return;
+    const pLoc = this.mouseInfo.pLoc;
+    if (!pLoc) return;
+
+    const {left, right, top, bottom} = this.pixelBounds;
+    const padding = 4;
+    const txtSize = margin * 0.3;
+    const textHeight = txtSize + padding;
+    const text = math.formatNumber(this.hoveredSample.point[0], 2) + ' | ' + math.formatNumber(this.hoveredSample.point[1], 2);
+    let align = 'right';
+    let vAlign = 'bottom';
+    const textWidth = Math.floor(ctx.measureText(text).width) + padding * 2;
+    let x = right;
+    let y = bottom;
+    let width = -textWidth;
+    let height = -textHeight;
+    let xText = x - padding;
+    let yText = y;
+    if (pLoc[0] > canvas.width / 2) {
+      align = 'left';
+      x = left;
+      xText = x + padding;
+      width = -width;
+    }
+    if (pLoc[1] > canvas.height / 2) {
+      vAlign = 'top';
+      y = top;
+      yText = y + padding;
+      height = -height
+    }
+
+    ctx.fillStyle = this.styles[this.hoveredSample.label].color; // "darkgray";
+    ctx.beginPath();
+    ctx.moveTo(x + width / 2 - 4, y + height / 2);
+    ctx.lineTo(x + width / 2 + 4, y + height / 2);
+    ctx.lineTo(pLoc[0], pLoc[1]);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.roundRect(x, y, width, height, [8]);
+    ctx.fill();
+
+
+    graphics.drawText(ctx, {
+      text: text,
+      loc: [xText, yText],
+      size: txtSize,
+      align,
+      vAlign,
+      color: this.styles[this.hoveredSample.label].tooltipTextColor
+    });
   }
 
   #drawCursor(ctx, margin /*, canvas */) {
