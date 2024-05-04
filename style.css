@@ -22,6 +22,14 @@ thead {
     transform: translate(0, -50%);
 }
 
+#chartContainer .layer {
+    position: absolute;
+    right: 0;
+    top: 0;
+    pointer-events: none;
+    z-index: 1;
+}
+
 .emphasize {
     background-color: yellow;
 }

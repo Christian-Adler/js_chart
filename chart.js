@@ -13,7 +13,15 @@ class Chart {
     this.canvas.style.backgroundColor = 'white';
     container.appendChild(this.canvas);
 
+    this.canvasLayer = document.createElement('canvas');
+    this.canvasLayer.classList.add('layer');
+    this.canvasLayer.width = options.size;
+    this.canvasLayer.height = options.size;
+    this.canvasLayer.style.backgroundColor = 'transparent';
+    container.appendChild(this.canvasLayer);
+
     this.ctx = this.canvas.getContext('2d');
+    this.ctxLayer = this.canvasLayer.getContext('2d');
 
     this.margin = options.size * 0.1;
     this.transparency = options.transparency || 1;
@@ -51,6 +59,7 @@ class Chart {
       dragInfo.offset = [0, 0];
     };
     canvas.onmousemove = (evt) => {
+      let fullRedraw = false;
       if (dragInfo.dragging) {
         dragInfo.end = this.#getMouse(evt, true);
         dragInfo.offset = math.scale(
@@ -59,6 +68,7 @@ class Chart {
         );
         const newOffset = math.add(dataTrans.offset, dragInfo.offset);
         this.#updateDataBounds(newOffset, dataTrans.scale);
+        fullRedraw = true;
       }
 
       // in pixel space
@@ -71,9 +81,14 @@ class Chart {
         this.hoveredSample = nearest;
       else
         this.hoveredSample = null;
-      this.#draw();
+
+
+      if (fullRedraw)
+        this.#draw();
+      else
+        this.#drawLayer();
     };
-    canvas.onmouseup = (evt) => {
+    canvas.onmouseup = (_) => {
       dataTrans.offset = math.add(dataTrans.offset, dragInfo.offset);
       dragInfo.dragging = false;
     };
@@ -104,7 +119,7 @@ class Chart {
       }
       if (this.onClick)
         this.onClick(this.selectedSample);
-      this.#draw();
+      this.#drawLayer();
     };
   }
 
@@ -160,43 +175,47 @@ class Chart {
 
   #draw() {
     const {ctx, canvas} = this;
-
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     ctx.globalAlpha = this.transparency;
-    this.#drawSamples(this.samples);
+    this.#drawSamples(ctx, this.samples);
     ctx.globalAlpha = 1;
 
-    if (this.hoveredSample)
-      this.#emphasizeSamples(this.hoveredSample);
-    if (this.selectedSample)
-      this.#emphasizeSamples(this.selectedSample, "yellow");
+    this.#drawLayer();
 
     this.#drawAxis();
   }
 
-  selectSample(sample) {
-    this.selectedSample = sample;
-    this.#draw();
+  #drawLayer() {
+    const {ctxLayer: ctx, canvasLayer: canvas, margin} = this;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (this.hoveredSample)
+      this.#emphasizeSamples(ctx, this.hoveredSample);
+    if (this.selectedSample)
+      this.#emphasizeSamples(ctx, this.selectedSample, "yellow");
+
+    this.#clearMargin(ctx, canvas, margin);
   }
 
-  #emphasizeSamples(sample, color = 'white') {
+  selectSample(sample) {
+    this.selectedSample = sample;
+    this.#drawLayer();
+  }
+
+  #emphasizeSamples(ctx, sample, color = 'white') {
     const pLoc = math.remapPoint(this.dataBounds, this.pixelBounds, sample.point);
-    const grd = this.ctx.createRadialGradient(...pLoc, 0, ...pLoc, this.margin);
+    const grd = ctx.createRadialGradient(...pLoc, 0, ...pLoc, this.margin);
     grd.addColorStop(0, color);
     grd.addColorStop(1, 'rgba(255,255,255,0');
-    graphics.drawPoint(this.ctx, pLoc, grd, this.margin * 2);
-    this.#drawSamples([sample]);
+    graphics.drawPoint(ctx, pLoc, grd, this.margin * 2);
+    this.#drawSamples(ctx, [sample]);
   }
 
   #drawAxis() {
     const {ctx, canvas, axesLabels, margin} = this;
     const {left, right, top, bottom} = this.pixelBounds;
-
-    ctx.clearRect(0, 0, canvas.width, margin);
-    ctx.clearRect(0, 0, margin, canvas.height);
-    ctx.clearRect(this.canvas.width - margin, 0, margin, this.canvas.height);
-    ctx.clearRect(0, this.canvas.height - margin, this.canvas.width, margin);
+    this.#clearMargin(ctx, canvas, margin);
 
     graphics.drawText(ctx, {
       text: axesLabels[0],
@@ -264,8 +283,15 @@ class Chart {
     ctx.restore();
   }
 
-  #drawSamples(samples) {
-    const {ctx, dataBounds, pixelBounds} = this;
+  #clearMargin(ctx, canvas, margin) {
+    ctx.clearRect(0, 0, canvas.width, margin);
+    ctx.clearRect(0, 0, margin, canvas.height);
+    ctx.clearRect(this.canvas.width - margin, 0, margin, this.canvas.height);
+    ctx.clearRect(0, this.canvas.height - margin, this.canvas.width, margin);
+  }
+
+  #drawSamples(ctx, samples) {
+    const {dataBounds, pixelBounds} = this;
     for (const sample of samples) {
       const {point, label} = sample;
       const pixelLoc = math.remapPoint(dataBounds, pixelBounds, point);
